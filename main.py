@@ -3,7 +3,7 @@ import json
 import base64
 
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
 from openai import OpenAI
 
 
@@ -17,8 +17,6 @@ app = FastAPI()
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 API_SECRET = os.environ["API_SECRET"]
 
-# Keep the model configurable.
-# Current default: GPT-6 Luna
 OPENAI_MODEL = os.environ.get(
     "OPENAI_MODEL",
     "gpt-6-luna"
@@ -40,7 +38,7 @@ def root():
 
 
 # ============================================================
-# PDF EXTRACTION
+# BOAT INSURANCE EXTRACTION
 # ============================================================
 
 @app.post("/boat-insurance")
@@ -73,7 +71,7 @@ async def boat_insurance(request: Request):
 
 
     # --------------------------------------------------------
-    # Basic size protection
+    # Limit PDF size
     # --------------------------------------------------------
 
     max_size = 20 * 1024 * 1024
@@ -121,12 +119,12 @@ async def boat_insurance(request: Request):
     # --------------------------------------------------------
 
     instructions = """
-You extract structured information from boat insurance
-documents.
+You extract information from boat insurance documents.
 
-The document may come from any insurance company.
+The document can come from ANY insurance company.
 
-The layout can be completely different between companies.
+Different insurance companies can have completely different
+document layouts.
 
 The document may be:
 - Swedish
@@ -135,7 +133,7 @@ The document may be:
 - digitally generated
 - scanned
 
-Look through the entire PDF.
+Look through the ENTIRE PDF.
 
 IMPORTANT RULES:
 
@@ -169,24 +167,23 @@ IMPORTANT RULES:
 8. Dates must be returned as YYYY-MM-DD.
 
 9. Preserve registration numbers, hull numbers and policy
-   numbers as they appear in the document.
+   numbers exactly as they appear.
 
 10. Do not guess missing characters in identifiers.
 
 11. If several boats are mentioned, identify the boat that
-    is actually insured by this policy. If this cannot be
-    determined reliably, return null for the affected fields.
+    is actually insured by this policy.
 
 12. The insurance company is the company providing the
     insurance, not a broker, bank, boat dealer or payment
     provider.
 
-Return only the requested JSON structure.
+Return ONLY the requested structured data.
 """
 
 
     # --------------------------------------------------------
-    # JSON schema
+    # Structured JSON schema used internally
     # --------------------------------------------------------
 
     schema = {
@@ -317,7 +314,7 @@ Return only the requested JSON structure.
 
 
         # ----------------------------------------------------
-        # Parse JSON
+        # Parse OpenAI JSON
         # ----------------------------------------------------
 
         result = json.loads(
@@ -326,25 +323,100 @@ Return only the requested JSON structure.
 
 
         # ----------------------------------------------------
-        # Return result
+        # Extract fields
         # ----------------------------------------------------
 
-        return JSONResponse(
-            content={
-                "success": True,
-                "data": result
-            }
+        insurance_company = result.get(
+            "insurance_company"
+        )
+
+        policy_number = result.get(
+            "policy_number"
+        )
+
+        boat = result.get(
+            "boat",
+            {}
+        )
+
+        insurance_period = result.get(
+            "insurance_period",
+            {}
+        )
+
+
+        boat_make = boat.get("make")
+        boat_model = boat.get("model")
+        registration_number = boat.get(
+            "registration_number"
+        )
+        hull_number = boat.get(
+            "hull_number"
+        )
+        boat_year = boat.get("year")
+
+        insurance_start = insurance_period.get(
+            "start"
+        )
+
+        insurance_end = insurance_period.get(
+            "end"
+        )
+
+
+        # ----------------------------------------------------
+        # Convert None to empty string
+        # ----------------------------------------------------
+
+        values = [
+
+            insurance_company,
+            policy_number,
+            boat_make,
+            boat_model,
+            registration_number,
+            hull_number,
+            boat_year,
+            insurance_start,
+            insurance_end
+        ]
+
+
+        values = [
+            "" if value is None else str(value)
+            for value in values
+        ]
+
+
+        # ----------------------------------------------------
+        # Protect the pipe-delimited format
+        #
+        # If a document contains | in a field, replace it.
+        # ----------------------------------------------------
+
+        values = [
+            value.replace("|", "/")
+            for value in values
+        ]
+
+
+        # ----------------------------------------------------
+        # Return one single line
+        # ----------------------------------------------------
+
+        csv_line = "|".join(values)
+
+
+        return PlainTextResponse(
+            content=csv_line,
+            media_type="text/plain"
         )
 
 
     except Exception as e:
 
-        return JSONResponse(
-
+        return PlainTextResponse(
+            content="ERROR|" + str(e).replace("|", "/"),
             status_code=500,
-
-            content={
-                "success": False,
-                "error": str(e)
-            }
+            media_type="text/plain"
         )
