@@ -131,13 +131,14 @@ def build_relevant_text(text, max_chars):
         r"company|bolag|försäkringsbolag|försäkringsgivare|"
         r"insurance|försäkring|försäkrings|policy|försäkringsnummer|"
         r"coverage|gäller|period|perioden|from|to|från|till|"
-        r"tillverkare|brand|hersteller"
-        r"boat|båt|vessel|fartyg|make|märke|model|modell|"
+        r"tillverkare|brand|märke|hersteller|"
+        r"boat|båt|vessel|fartyg|make|model|modell|"
         r"registration|registrering|registreringsnummer|hull|skrov|hin|cin|s/n|serienummer|"
         r"year|årsmodell|byggår|"
         r"",
         re.IGNORECASE | re.VERBOSE
     )
+
 
 
     selected = set()
