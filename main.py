@@ -128,13 +128,14 @@ def build_relevant_text(text, max_chars):
     keyword_pattern = re.compile(
         r""
         r"försäkringstagare|"
+        r"company|bolag|försäkringsbolag|försäkringsgivare|"
         r"insurance|försäkring|försäkrings|policy|försäkringsnummer|"
         r"coverage|gäller|period|perioden|from|to|från|till|"
+        r"tillverkare|brand|hersteller"
         r"boat|båt|vessel|fartyg|make|märke|model|modell|"
-        r"registration|registrering|registreringsnummer|"
-        r"hull|skrov|hin|cin|year|årsmodell|byggår|"
+        r"registration|registrering|registreringsnummer|hull|skrov|hin|cin|s/n|serienummer|"
+        r"year|årsmodell|byggår|"
         r"insured|försäkrad|försäkringstagare|"
-        r"company|bolag|försäkringsbolag|försäkringsgivare|"
         r"",
         re.IGNORECASE | re.VERBOSE
     )
