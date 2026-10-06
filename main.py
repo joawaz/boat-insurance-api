@@ -129,12 +129,12 @@ def build_relevant_text(text, max_chars):
         r""
         r"försäkringstagare|insured|försäkrad|"
         r"company|bolag|försäkringsbolag|försäkringsgivare|"
-        r"insurance|försäkring|försäkrings|policy|försäkringsnummer|"
-        r"coverage|gäller|period|perioden|from|to|från|till|"
-        r"tillverkare|brand|märke|hersteller|"
+        r"insurance|försäkring|försäkrings|policy|försäkringsnummer|båtförsäkring|"
+        r"coverage|gäller|period|perioden|from|to|från|till|tiden|försäkringstid|försäkringsperiod|"
+        r"tillverkare|brand|märke|hersteller|fabrikat|"
         r"boat|båt|vessel|fartyg|make|model|modell|"
-        r"registration|registrering|registreringsnummer|hull|skrov|hin|cin|s/n|serienummer|"
-        r"year|årsmodell|byggår|"
+        r"registration|registrering|registreringsnummer|hull|skrov|hin|cin|s/n|serienummer|tillverkningsnr|skrovnummer|"
+        r"year|årsmodell|byggår|år|tillverkningsår|"
         r"",
         re.IGNORECASE | re.VERBOSE
     )
